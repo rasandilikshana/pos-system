@@ -7,6 +7,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
+/** Form Object for create/edit Product — validation + data shaping only. Persistence lives in SaveProductAction. */
 class ProductForm extends Form
 {
     public ?int $id = null;
@@ -75,19 +76,11 @@ class ProductForm extends Form
         ];
     }
 
-    public function save(): Product
+    /** @return array<string, mixed> */
+    public function attributes(): array
     {
         $this->validate();
 
-        $attrs = $this->except('id');
-
-        if ($this->id) {
-            $product = Product::findOrFail($this->id);
-            $product->update($attrs);
-
-            return $product->fresh();
-        }
-
-        return Product::create($attrs);
+        return $this->except('id');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Products;
 
+use App\Actions\Products\SaveProductAction;
 use App\Livewire\Forms\ProductForm;
 use App\Models\Category;
 use App\Models\Product;
@@ -29,9 +30,10 @@ class Edit extends Component
         }
     }
 
-    public function save(): mixed
+    public function save(SaveProductAction $save): mixed
     {
-        $this->form->save();
+        $save->execute($this->form->attributes(), $this->product?->id);
+
         session()->flash('status', $this->product
             ? __('Product updated.')
             : __('Product created.'));

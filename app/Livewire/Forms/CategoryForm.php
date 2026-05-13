@@ -8,6 +8,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
+/** Form Object for create/edit Category — validation + data shaping only. Persistence lives in SaveCategoryAction. */
 class CategoryForm extends Form
 {
     public ?int $id = null;
@@ -39,6 +40,8 @@ class CategoryForm extends Form
 
     public function rules(): array
     {
+        $slugForUniqueness = $this->slug !== '' ? Str::slug($this->slug) : Str::slug($this->name);
+
         return [
             'slug' => [
                 'required', 'string', 'max:120',
@@ -51,21 +54,13 @@ class CategoryForm extends Form
         ];
     }
 
-    public function save(): Category
+    /** @return array<string, mixed> */
+    public function attributes(): array
     {
         $this->slug = $this->slug !== '' ? Str::slug($this->slug) : Str::slug($this->name);
 
         $this->validate();
 
-        $attrs = $this->except('id');
-
-        if ($this->id) {
-            $category = Category::findOrFail($this->id);
-            $category->update($attrs);
-
-            return $category->fresh();
-        }
-
-        return Category::create($attrs);
+        return $this->except('id');
     }
 }

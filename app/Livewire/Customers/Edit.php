@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Customers;
 
+use App\Actions\Customers\SaveCustomerAction;
 use App\Livewire\Forms\CustomerForm;
 use App\Models\Customer;
 use Illuminate\View\View;
@@ -27,9 +28,10 @@ class Edit extends Component
         }
     }
 
-    public function save(): mixed
+    public function save(SaveCustomerAction $save): mixed
     {
-        $this->form->save();
+        $save->execute($this->form->attributes(), $this->customer?->id);
+
         session()->flash('status', $this->customer ? __('Customer updated.') : __('Customer created.'));
 
         return redirect()->route('customers.index');

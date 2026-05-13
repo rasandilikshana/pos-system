@@ -7,6 +7,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
+/** Form Object for create/edit Customer — validation + data shaping only. Persistence lives in SaveCustomerAction. */
 class CustomerForm extends Form
 {
     public ?int $id = null;
@@ -50,19 +51,11 @@ class CustomerForm extends Form
         ];
     }
 
-    public function save(): Customer
+    /** @return array<string, mixed> */
+    public function attributes(): array
     {
         $this->validate();
 
-        $attrs = $this->except('id');
-
-        if ($this->id) {
-            $customer = Customer::findOrFail($this->id);
-            $customer->update($attrs);
-
-            return $customer->fresh();
-        }
-
-        return Customer::create($attrs);
+        return $this->except('id');
     }
 }

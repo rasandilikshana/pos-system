@@ -7,6 +7,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
+/** Form Object for create/edit Supplier — validation + data shaping only. Persistence lives in SaveSupplierAction. */
 class SupplierForm extends Form
 {
     public ?int $id = null;
@@ -54,19 +55,11 @@ class SupplierForm extends Form
         ];
     }
 
-    public function save(): Supplier
+    /** @return array<string, mixed> */
+    public function attributes(): array
     {
         $this->validate();
 
-        $attrs = $this->except('id');
-
-        if ($this->id) {
-            $supplier = Supplier::findOrFail($this->id);
-            $supplier->update($attrs);
-
-            return $supplier->fresh();
-        }
-
-        return Supplier::create($attrs);
+        return $this->except('id');
     }
 }

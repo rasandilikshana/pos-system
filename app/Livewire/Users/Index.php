@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Users;
 
-use App\Models\User;
+use App\Repositories\UserRepository;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -29,7 +29,7 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function delete(int $id): void
+    public function delete(int $id, UserRepository $users): void
     {
         abort_unless(auth()->user()?->can('users.manage'), 403);
 
@@ -39,21 +39,14 @@ class Index extends Component
             return;
         }
 
-        User::findOrFail($id)->delete();
+        $users->delete($id);
         session()->flash('status', __('User suspended.'));
     }
 
-    public function render(): View
+    public function render(UserRepository $users): View
     {
-        $users = User::query()
-            ->with('roles')
-            ->when($this->search !== '', function ($q) {
-                $like = '%'.$this->search.'%';
-                $q->where(fn ($qq) => $qq->where('name', 'like', $like)->orWhere('email', 'like', $like));
-            })
-            ->orderBy('name')
-            ->paginate(15);
-
-        return view('livewire.users.index', ['users' => $users]);
+        return view('livewire.users.index', [
+            'users' => $users->paginateFiltered($this->search),
+        ]);
     }
 }

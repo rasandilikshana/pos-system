@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Suppliers;
 
-use App\Models\Supplier;
+use App\Repositories\SupplierRepository;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -29,25 +29,18 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function delete(int $id): void
+    public function delete(int $id, SupplierRepository $suppliers): void
     {
         abort_unless(auth()->user()?->can('suppliers.manage'), 403);
-        Supplier::findOrFail($id)->delete();
+
+        $suppliers->delete($id);
         session()->flash('status', __('Supplier archived.'));
     }
 
-    public function render(): View
+    public function render(SupplierRepository $suppliers): View
     {
-        $suppliers = Supplier::query()
-            ->when($this->search !== '', function ($q) {
-                $like = '%'.$this->search.'%';
-                $q->where(fn ($qq) => $qq->where('name', 'like', $like)
-                    ->orWhere('email', 'like', $like)
-                    ->orWhere('phone', 'like', $like));
-            })
-            ->orderBy('name')
-            ->paginate(15);
-
-        return view('livewire.suppliers.index', ['suppliers' => $suppliers]);
+        return view('livewire.suppliers.index', [
+            'suppliers' => $suppliers->paginateFiltered($this->search),
+        ]);
     }
 }

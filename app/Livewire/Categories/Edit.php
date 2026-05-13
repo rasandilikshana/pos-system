@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Categories;
 
+use App\Actions\Categories\SaveCategoryAction;
 use App\Livewire\Forms\CategoryForm;
 use App\Models\Category;
 use Illuminate\View\View;
@@ -27,9 +28,10 @@ class Edit extends Component
         }
     }
 
-    public function save(): mixed
+    public function save(SaveCategoryAction $save): mixed
     {
-        $this->form->save();
+        $save->execute($this->form->attributes(), $this->category?->id);
+
         session()->flash('status', $this->category ? __('Category updated.') : __('Category created.'));
 
         return redirect()->route('categories.index');

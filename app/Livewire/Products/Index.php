@@ -3,7 +3,7 @@
 namespace App\Livewire\Products;
 
 use App\Models\Category;
-use App\Models\Product;
+use App\Repositories\ProductRepository;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -38,29 +38,18 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function delete(int $id): void
+    public function delete(int $id, ProductRepository $products): void
     {
         abort_unless(auth()->user()?->can('products.manage'), 403);
-        Product::findOrFail($id)->delete();
+
+        $products->delete($id);
         session()->flash('status', __('Product archived.'));
     }
 
-    public function render(): View
+    public function render(ProductRepository $products): View
     {
-        $products = Product::query()
-            ->with('category')
-            ->when($this->search !== '', function ($q) {
-                $like = '%'.$this->search.'%';
-                $q->where(fn ($qq) => $qq->where('name', 'like', $like)
-                    ->orWhere('sku', 'like', $like)
-                    ->orWhere('barcode', 'like', $like));
-            })
-            ->when($this->category !== '', fn ($q) => $q->where('category_id', $this->category))
-            ->orderBy('name')
-            ->paginate(15);
-
         return view('livewire.products.index', [
-            'products' => $products,
+            'products' => $products->paginateFiltered($this->search, $this->category !== '' ? (int) $this->category : null),
             'categories' => Category::orderBy('name')->get(),
         ]);
     }

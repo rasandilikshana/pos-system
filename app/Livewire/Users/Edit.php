@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Users;
 
+use App\Actions\Users\SaveUserAction;
 use App\Livewire\Forms\UserForm;
 use App\Models\User;
 use Illuminate\View\View;
@@ -27,9 +28,10 @@ class Edit extends Component
         }
     }
 
-    public function save(): mixed
+    public function save(SaveUserAction $save): mixed
     {
-        $this->form->save();
+        $save->execute($this->form->attributes(), $this->user?->id);
+
         session()->flash('status', $this->user ? __('User updated.') : __('User created.'));
 
         return redirect()->route('users.index');

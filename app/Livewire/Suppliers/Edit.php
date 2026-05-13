@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Suppliers;
 
+use App\Actions\Suppliers\SaveSupplierAction;
 use App\Livewire\Forms\SupplierForm;
 use App\Models\Supplier;
 use Illuminate\View\View;
@@ -27,9 +28,10 @@ class Edit extends Component
         }
     }
 
-    public function save(): mixed
+    public function save(SaveSupplierAction $save): mixed
     {
-        $this->form->save();
+        $save->execute($this->form->attributes(), $this->supplier?->id);
+
         session()->flash('status', $this->supplier ? __('Supplier updated.') : __('Supplier created.'));
 
         return redirect()->route('suppliers.index');

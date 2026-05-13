@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Customers;
 
-use App\Models\Customer;
+use App\Repositories\CustomerRepository;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -29,25 +29,18 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function delete(int $id): void
+    public function delete(int $id, CustomerRepository $customers): void
     {
         abort_unless(auth()->user()?->can('customers.manage'), 403);
-        Customer::findOrFail($id)->delete();
+
+        $customers->delete($id);
         session()->flash('status', __('Customer archived.'));
     }
 
-    public function render(): View
+    public function render(CustomerRepository $customers): View
     {
-        $customers = Customer::query()
-            ->when($this->search !== '', function ($q) {
-                $like = '%'.$this->search.'%';
-                $q->where(fn ($qq) => $qq->where('name', 'like', $like)
-                    ->orWhere('email', 'like', $like)
-                    ->orWhere('phone', 'like', $like));
-            })
-            ->orderBy('name')
-            ->paginate(15);
-
-        return view('livewire.customers.index', ['customers' => $customers]);
+        return view('livewire.customers.index', [
+            'customers' => $customers->paginateFiltered($this->search),
+        ]);
     }
 }

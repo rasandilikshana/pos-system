@@ -3,11 +3,11 @@
 namespace App\Livewire\Forms;
 
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Validate;
 use Livewire\Form;
 
+/** Form Object for create/edit User — validation + data shaping only. Persistence lives in SaveUserAction. */
 class UserForm extends Form
 {
     public ?int $id = null;
@@ -52,30 +52,17 @@ class UserForm extends Form
         ];
     }
 
-    public function save(): User
+    /** @return array{name:string,email:string,role:string,is_active:bool,password:?string} */
+    public function attributes(): array
     {
         $this->validate();
 
-        $attrs = [
+        return [
             'name' => $this->name,
             'email' => $this->email,
+            'role' => $this->role,
             'is_active' => $this->is_active,
+            'password' => $this->password,
         ];
-
-        if ($this->password) {
-            $attrs['password'] = Hash::make($this->password);
-        }
-
-        if ($this->id) {
-            $user = User::findOrFail($this->id);
-            $user->update($attrs);
-        } else {
-            $attrs['email_verified_at'] = now();
-            $user = User::create($attrs);
-        }
-
-        $user->syncRoles([$this->role]);
-
-        return $user->fresh();
     }
 }

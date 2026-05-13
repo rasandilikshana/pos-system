@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Categories;
 
-use App\Models\Category;
+use App\Repositories\CategoryRepository;
 use Illuminate\View\View;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
@@ -29,20 +29,18 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function delete(int $id): void
+    public function delete(int $id, CategoryRepository $categories): void
     {
         abort_unless(auth()->user()?->can('categories.manage'), 403);
-        Category::findOrFail($id)->delete();
+
+        $categories->delete($id);
         session()->flash('status', __('Category archived.'));
     }
 
-    public function render(): View
+    public function render(CategoryRepository $categories): View
     {
-        $categories = Category::query()
-            ->when($this->search !== '', fn ($q) => $q->where('name', 'like', '%'.$this->search.'%'))
-            ->orderBy('name')
-            ->paginate(15);
-
-        return view('livewire.categories.index', ['categories' => $categories]);
+        return view('livewire.categories.index', [
+            'categories' => $categories->paginateFiltered($this->search),
+        ]);
     }
 }
