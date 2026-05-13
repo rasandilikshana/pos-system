@@ -12,10 +12,11 @@ class ProductRepository extends BaseRepository
         return Product::class;
     }
 
-    public function paginateFiltered(string $search = '', ?int $categoryId = null, int $perPage = 15): LengthAwarePaginator
+    public function paginateFiltered(string $search = '', ?int $categoryId = null, bool $activeOnly = false, int $perPage = 15): LengthAwarePaginator
     {
         return $this->query()
             ->with('category')
+            ->when($activeOnly, fn ($q) => $q->where('is_active', true))
             ->when($search !== '', function ($q) use ($search) {
                 $like = '%'.$search.'%';
                 $q->where(fn ($qq) => $qq->where('name', 'like', $like)
